@@ -30,7 +30,32 @@
   </script>
   
   <style>
-    body { background-color: #050505; color: #e0e0e0; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body { 
+      background-color: #050505; 
+      color: #e0e0e0; 
+      font-family: 'Inter', sans-serif; 
+      min-height: 100vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Кастомный скролл для эстетики */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1114;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2228;
+      border-radius: 4px;
+    }
     
     @keyframes flow {
       to { stroke-dashoffset: -16; }
@@ -40,11 +65,13 @@
     }
     
     .scanline {
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
       background-size: 100% 4px, 3px 100%;
+      pointer-events: none;
     }
 
-    /* Node dynamic classes */
+    /* Утилитарные классы для состояний узлов */
     .bg-cyan-node { background-color: rgba(0, 240, 255, 0.05); border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 0 20px rgba(0,240,255,0.05); }
     .text-cyan-node { color: #00f0ff; }
     
@@ -56,37 +83,55 @@
 
     .fade-in { animation: fadeIn 0.3s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Кастомный тумблер */
+    .toggle-checkbox:checked + .toggle-bg .toggle-circle {
+      transform: translateX(30px);
+      background: #00ff94;
+      box-shadow: 0 0 10px #00ff94;
+    }
+    .toggle-checkbox:checked + .toggle-bg {
+      border-color: transparent;
+    }
+    .toggle-bg {
+      transition: border 0.2s;
+    }
+    .toggle-circle {
+      transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col relative overflow-hidden">
+<body class="relative">
+
 <!-- Scanline Overlay -->
 <div class="absolute inset-0 pointer-events-none z-[100] opacity-30 scanline"></div>
 
-<div class="flex-1 flex flex-col items-center py-10 px-4 sm:px-6 relative z-10 w-full overflow-y-auto">
-  <div class="w-full max-w-3xl pb-16">
+<!-- Основной контейнер с отступами и скроллом -->
+<div class="relative z-10 w-full min-h-screen flex flex-col items-center py-6 px-3 sm:px-5 pb-32">
+  <div class="w-full max-w-3xl">
     
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-[#1f2228] pb-6 mb-10 w-full" style="background: linear-gradient(to right, #0a0a0b, #050505)">
-      <div class="px-4">
-        <h1 class="text-lg font-bold font-mono tracking-[2px] text-[#00f0ff] mb-1 uppercase">
+    <div class="flex items-center justify-between border-b border-[#1f2228] pb-5 mb-8 w-full bg-gradient-to-r from-[#0a0a0b] to-[#050505]">
+      <div class="px-2">
+        <h1 class="text-base sm:text-lg font-bold font-mono tracking-[1.5px] text-[#00f0ff] uppercase">
           SING-BOX ARCH v2.1
         </h1>
-        <p class="text-xs text-[#666a73] uppercase mt-1">
+        <p class="text-[10px] sm:text-xs text-[#666a73] uppercase mt-1">
           Network Flow Simulator • <span class="text-[#00ff94]">@MrWindowsD</span>
         </p>
       </div>
-      <div class="flex flex-col items-end gap-2 pr-4 hidden sm:flex">
-        <div class="font-mono text-[11px] bg-[#00f0ff]/10 border border-[#00f0ff] px-3 py-1 text-[#00f0ff] rounded-sm">
+      <div class="hidden sm:flex flex-col items-end gap-2 pr-2">
+        <div class="font-mono text-[10px] sm:text-[11px] bg-[#00f0ff]/10 border border-[#00f0ff] px-3 py-1 text-[#00f0ff] rounded-sm">
           SYSTEM: ONLINE
         </div>
       </div>
     </div>
 
-    <!-- Pipeline -->
-    <div class="flex flex-col items-center w-full relative mb-12">
+    <!-- Pipeline Visualization -->
+    <div class="flex flex-col items-center w-full relative mb-8">
       
-      <!-- Source -->
-      <div class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 transition-all duration-500 w-[140px] sm:w-[150px] bg-cyan-node border">
+      <!-- Source Node -->
+      <div class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border w-[140px] sm:w-[150px] bg-cyan-node">
         <span class="text-[10px] uppercase text-[#666a73] mb-2 font-sans">Source App</span>
         <div class="flex items-center gap-2 mb-2">
           <svg class="text-cyan-node w-4 h-4 sm:w-5 sm:h-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
@@ -95,13 +140,15 @@
         <span class="font-mono text-[10px] font-bold text-cyan-node">IP: api.ozon.ru</span>
       </div>
       
+      <!-- Vertical Line -->
       <div class="w-[2px] h-10 relative -my-1 z-0">
          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 2 50" preserveAspectRatio="none">
             <path class="animate-flow" d="M 1 0 L 1 50" stroke="#00f0ff" stroke-width="2" fill="none" stroke-dasharray="4 4" />
          </svg>
       </div>
       
-      <div class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 transition-all duration-500 w-[140px] sm:w-[150px] bg-cyan-node border">
+      <!-- TUN Interface -->
+      <div class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border w-[140px] sm:w-[150px] bg-cyan-node">
         <span class="text-[10px] uppercase text-[#666a73] mb-2 font-sans">Virtual NIC</span>
         <div class="flex items-center gap-2 mb-2">
           <svg class="text-cyan-node w-4 h-4 sm:w-5 sm:h-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg>
@@ -112,107 +159,107 @@
       <!-- Split Paths -->
       <div class="w-[300px] sm:w-[350px] h-14 sm:h-16 relative -my-1 z-0">
          <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 50">
-            <path id="pathA-split" d="M 50 0 C 50 40, 20 10, 20 50" stroke-width="2" fill="none" style="transition: all 0.3s;" />
-            <path id="pathB-split" d="M 50 0 C 50 40, 80 10, 80 50" stroke-width="2" fill="none" style="transition: all 0.3s;" />
+            <path id="pathA-split" d="M 50 0 C 50 40, 20 10, 20 50" stroke-width="2" fill="none" />
+            <path id="pathB-split" d="M 50 0 C 50 40, 80 10, 80 50" stroke-width="2" fill="none" />
          </svg>
       </div>
 
-      <!-- Logic Layer -->
+      <!-- Logic Nodes -->
       <div class="flex w-[300px] sm:w-[350px] justify-between relative z-10 gap-4">
-          <div id="nodeA-logic" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border transition-all duration-500 w-[140px] sm:w-[150px]">
+          <div id="nodeA-logic" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border w-[140px] sm:w-[150px] bg-[#0f1114] border-[#1f2228]">
             <span class="text-[10px] uppercase text-[#666a73] mb-2 font-sans">inbound</span>
             <div class="flex items-center gap-2 mb-2">
-              <svg id="iconA-logic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 2-2-2-2"/><path d="M11 13h4"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+              <svg id="iconA-logic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 sm:w-5 sm:h-5 text-[#666a73]"><path d="m7 11 2-2-2-2"/><path d="M11 13h4"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
               <span class="font-mono text-sm tracking-tight font-bold text-center text-[#e0e0e0]">tun-in</span>
             </div>
           </div>
           
-          <div id="nodeB-logic" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border transition-all duration-500 w-[140px] sm:w-[150px]">
+          <div id="nodeB-logic" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border w-[140px] sm:w-[150px] bg-[#0f1114] border-[#1f2228]">
             <span class="text-[10px] uppercase text-[#666a73] mb-2 font-sans">rule_set: direct</span>
             <div class="flex items-center gap-2 mb-2">
-              <svg id="iconB-logic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 2-2-2-2"/><path d="M11 13h4"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+              <svg id="iconB-logic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 sm:w-5 sm:h-5 text-[#666a73]"><path d="m7 11 2-2-2-2"/><path d="M11 13h4"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
               <span class="font-mono text-sm tracking-tight font-bold text-center text-[#e0e0e0]">custom-domains</span>
             </div>
           </div>
       </div>
 
-      <!-- Middle Connections -->
+      <!-- Middle vertical lines -->
       <div class="flex w-[300px] sm:w-[350px] justify-between relative z-0">
           <div class="w-[140px] sm:w-[150px] flex justify-center">
              <div class="w-[2px] h-10 sm:h-12 relative -my-1 z-0">
                 <svg class="absolute inset-0 w-full h-full" viewBox="0 0 2 50" preserveAspectRatio="none">
-                   <path id="pathA-mid" d="M 1 0 L 1 50" stroke-width="2" fill="none" style="transition: all 0.3s;" />
+                   <path id="pathA-mid" d="M 1 0 L 1 50" stroke-width="2" fill="none" />
                 </svg>
              </div>
           </div>
           <div class="w-[140px] sm:w-[150px] flex justify-center">
              <div class="w-[2px] h-10 sm:h-12 relative -my-1 z-0">
                 <svg class="absolute inset-0 w-full h-full" viewBox="0 0 2 50" preserveAspectRatio="none">
-                   <path id="pathB-mid" d="M 1 0 L 1 50" stroke-width="2" fill="none" style="transition: all 0.3s;" />
+                   <path id="pathB-mid" d="M 1 0 L 1 50" stroke-width="2" fill="none" />
                 </svg>
              </div>
           </div>
       </div>
 
-      <!-- DNS Layer -->
+      <!-- DNS Nodes -->
       <div class="flex w-[300px] sm:w-[350px] justify-between relative z-10 gap-4">
-          <div id="nodeA-dns" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg border z-10 transition-all duration-500 w-[140px] sm:w-[150px]">
+          <div id="nodeA-dns" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg border z-10 w-[140px] sm:w-[150px] bg-[#0f1114] border-[#1f2228]">
             <div class="flex items-center gap-2 mb-2 mt-4">
-              <svg id="iconA-dns" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+              <svg id="iconA-dns" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 sm:w-5 sm:h-5 text-[#666a73]"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
               <span class="font-mono text-sm tracking-tight font-bold text-center text-[#e0e0e0]">dns-fake</span>
             </div>
-            <span id="ipA-dns" class="font-mono text-[10px] font-bold">IP: 198.18.0.5</span>
+            <span id="ipA-dns" class="font-mono text-[10px] font-bold text-[#666a73]">IP: 198.18.0.5</span>
           </div>
           
-          <div id="nodeB-dns" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg border z-10 transition-all duration-500 w-[140px] sm:w-[150px]">
+          <div id="nodeB-dns" class="relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg border z-10 w-[140px] sm:w-[150px] bg-[#0f1114] border-[#1f2228]">
             <div class="flex items-center gap-2 mb-2 mt-4">
-              <svg id="iconB-dns" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.686 15A14.5 14.5 0 0 1 12 22a14.5 14.5 0 0 1-0-20 10 10 0 1 0 9.542 13"/><path d="M2 12h8.5"/><path d="M20 6V4a2 2 0 1 0-4 0v2"/><path d="M20 6h-4c-.6 0-1 .4-1 1v3c0 .6.4 1 1 1h4c.6 0 1-.4 1-1V7c0-.6-.4-1-1-1Z"/></svg>
+              <svg id="iconB-dns" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 sm:w-5 sm:h-5 text-[#666a73]"><path d="M15.686 15A14.5 14.5 0 0 1 12 22a14.5 14.5 0 0 1-0-20 10 10 0 1 0 9.542 13"/><path d="M2 12h8.5"/><path d="M20 6V4a2 2 0 1 0-4 0v2"/><path d="M20 6h-4c-.6 0-1 .4-1 1v3c0 .6.4 1 1 1h4c.6 0 1-.4 1-1V7c0-.6-.4-1-1-1Z"/></svg>
               <span class="font-mono text-sm tracking-tight font-bold text-center text-[#e0e0e0]">dns-direct</span>
             </div>
-            <span id="ipB-dns" class="font-mono text-[10px] font-bold">IP: 185.15.x.x</span>
+            <span id="ipB-dns" class="font-mono text-[10px] font-bold text-[#666a73]">IP: 185.15.x.x</span>
           </div>
       </div>
 
       <!-- Merge Lines -->
       <div class="w-[300px] sm:w-[350px] h-16 sm:h-20 relative -my-1 z-0">
          <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 50">
-            <path id="pathA-merge" d="M 20 0 C 20 40, 50 10, 50 50" stroke-width="2" fill="none" style="transition: all 0.3s;" />
-            <path id="pathB-merge" d="M 80 0 C 80 40, 50 10, 50 50" stroke-width="2" fill="none" style="transition: all 0.3s;" />
+            <path id="pathA-merge" d="M 20 0 C 20 40, 50 10, 50 50" stroke-width="2" fill="none" />
+            <path id="pathB-merge" d="M 80 0 C 80 40, 50 10, 50 50" stroke-width="2" fill="none" />
          </svg>
       </div>
 
-      <!-- AntiFraud -->
-      <div class="relative z-10 w-full">
+      <!-- Anti-Fraud Box -->
+      <div class="relative z-10 w-full mt-2">
         <div class="flex justify-center">
            <div class="bg-[#0f1114] border border-[#1f2228] p-4 rounded-lg w-full max-w-sm flex flex-col items-center shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
               <span class="text-[10px] uppercase text-[#666a73] mb-2 font-sans">Target Gateway</span>
               <h2 class="font-mono font-bold text-sm text-[#e0e0e0] mb-2">ANTI-FRAUD</h2>
               <span class="text-[10px] text-[#666a73] mb-4">Security Check</span>
               
-              <div class="w-full border border-[#1f2228] rounded p-4 bg-black/20 text-center relative overflow-hidden h-20 flex flex-col items-center justify-center">
-                <div class="font-mono text-[11px] text-[#666a73] mb-2 absolute top-2">RESULT: TERMINAL_ANALYSIS</div>
+              <div class="w-full border border-[#1f2228] rounded p-4 bg-black/20 text-center relative overflow-hidden h-24 flex flex-col items-center justify-center">
+                <div class="font-mono text-[11px] text-[#666a73] mb-2">RESULT: TERMINAL_ANALYSIS</div>
                 
-                <div id="fraudSuccess" class="font-bold text-lg text-[#00ff94] flex items-center justify-center gap-2 font-sans whitespace-nowrap absolute top-8" style="display: none;">
+                <div id="fraudSuccess" class="font-bold text-lg text-[#00ff94] flex items-center justify-center gap-2 font-sans whitespace-nowrap" style="display: none;">
                   <span>●</span> CLEAN CONNECTION
                 </div>
                 
-                <div id="fraudFail" class="font-bold text-md sm:text-lg text-[#ff3e3e] flex items-center justify-center gap-2 font-sans whitespace-nowrap absolute top-8">
+                <div id="fraudFail" class="font-bold text-md sm:text-lg text-[#ff3e3e] flex items-center justify-center gap-2 font-sans whitespace-nowrap">
                   <span>●</span> VPN DETECTED (FAKE IP)
                 </div>
               </div>
            </div>
         </div>
       </div>
-      
     </div>
 
     <!-- Controls -->
-    <div class="w-full bg-[#0f1114] border-t border-[#1f2228] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between mt-8 relative z-20 rounded shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+    <div class="w-full bg-[#0f1114] border-t border-[#1f2228] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between mt-6 relative z-20 rounded shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
        <div class="flex gap-6 items-center w-full sm:w-auto">
          <div class="flex items-center gap-4">
-            <label class="relative inline-flex items-center cursor-pointer group" onclick="toggleBypass(event)">
-              <div id="toggleBg" class="w-[60px] h-[30px] bg-[#1a1c1e] rounded-[30px] border border-[#1f2228] relative transition-colors duration-300">
-                <div id="toggleCircle" class="absolute top-[3px] left-[4px] bg-[#666a73] rounded-full h-[22px] w-[22px] transition-all duration-300"></div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="bypassToggle" class="sr-only toggle-checkbox">
+              <div class="toggle-bg w-[60px] h-[30px] bg-[#1a1c1e] rounded-[30px] border border-[#1f2228] relative">
+                <div class="toggle-circle absolute top-[3px] left-[4px] bg-[#666a73] rounded-full h-[22px] w-[22px]"></div>
               </div>
             </label>
             <div>
@@ -222,14 +269,14 @@
          </div>
        </div>
 
-       <div class="mt-6 sm:mt-0 px-4 py-2 border border-[#1f2228] bg-black/40 rounded flex items-center gap-3 w-full sm:w-auto justify-center">
+       <div class="mt-5 sm:mt-0 px-4 py-2 border border-[#1f2228] bg-black/40 rounded flex items-center gap-3 w-full sm:w-auto justify-center">
           <div id="trafficIndicator" class="w-2 h-2 rounded-full animate-pulse bg-[#ff3e3e] shadow-[0_0_8px_#ff3e3e]"></div>
           <span class="font-mono text-xs text-[#666a73] tracking-widest uppercase">Traffic Live</span>
        </div>
     </div>
 
     <!-- Terminal -->
-    <div class="w-full bg-[#050505] border border-[#1f2228] p-4 font-mono text-[10px] sm:text-xs text-[#666a73] mt-8 relative z-20 mx-auto max-w-full overflow-hidden rounded shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <div class="w-full bg-[#050505] border border-[#1f2228] p-4 font-mono text-[10px] sm:text-xs text-[#666a73] mt-6 relative z-20 rounded shadow-[0_0_15px_rgba(0,0,0,0.5)]">
        <div class="flex gap-2 items-center mb-3">
           <div class="w-2 h-2 rounded-full bg-[#ff3e3e]/50"></div>
           <div class="w-2 h-2 rounded-full bg-[#eab308]/50"></div>
@@ -243,19 +290,19 @@
          </div>
          
          <div id="logBlockFake">
-           <div class="text-[#ff3e3e]/80 font-mono fade-in" style="animation-delay: 0.1s;">
+           <div class="text-[#ff3e3e]/80 font-mono fade-in">
               <span class="opacity-50">00:00:02</span> [warn] inbound/tun: matched rule 'tun-in'
            </div>
-           <div class="text-[#ff3e3e]/80 font-mono fade-in" style="animation-delay: 0.2s;">
+           <div class="text-[#ff3e3e]/80 font-mono fade-in">
               <span class="opacity-50">00:00:03</span> [warn] dns: returning fake-ip 198.18.0.5
            </div>
          </div>
          
          <div id="logBlockDirect" style="display: none;">
-           <div class="text-[#00ff94]/80 font-mono fade-in" style="animation-delay: 0.1s;">
+           <div class="text-[#00ff94]/80 font-mono fade-in">
               <span class="opacity-50">00:00:02</span> [info] ruleset: custom-domains matched api.ozon.ru
            </div>
-           <div class="text-[#00ff94]/80 font-mono fade-in" style="animation-delay: 0.2s;">
+           <div class="text-[#00ff94]/80 font-mono fade-in">
               <span class="opacity-50">00:00:03</span> [info] dns: returning direct IP 185.15.x.x
            </div>
          </div>
@@ -265,147 +312,141 @@
 </div>
 
 <script>
-  // Init Telegram Web App
-  if (window.Telegram && window.Telegram.WebApp) {
-      const WebApp = window.Telegram.WebApp;
-      WebApp.ready();
-      WebApp.expand();
-      WebApp.setHeaderColor('#050505');
-      WebApp.setBackgroundColor('#050505');
-  }
+  (function(){
+    // Telegram Web App инициализация
+    if (window.Telegram && window.Telegram.WebApp) {
+        const WebApp = window.Telegram.WebApp;
+        WebApp.ready();
+        WebApp.expand();
+        WebApp.setHeaderColor('#050505');
+        WebApp.setBackgroundColor('#050505');
+    }
 
-  let useDirect = false;
-
-  function setNodeState(baseId, isActive, colorTheme) {
-    const el = document.getElementById(baseId);
-    const icon = document.getElementById(baseId.replace('node', 'icon'));
-    const ip = document.getElementById(baseId.replace('node', 'ip'));
+    const toggleCheckbox = document.getElementById('bypassToggle');
     
-    // Reset classes
-    el.className = "relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg z-10 border transition-all duration-500 w-[140px] sm:w-[150px] bg-[#0f1114] border-[#1f2228]";
-    icon.className.baseVal = "w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-500 text-[#666a73]";
-    if (ip) ip.className = "font-mono text-[10px] font-bold transition-colors duration-500 text-[#666a73]";
+    // DOM элементы
+    const pathASplit = document.getElementById('pathA-split');
+    const pathBSplit = document.getElementById('pathB-split');
+    const pathAMid = document.getElementById('pathA-mid');
+    const pathBMid = document.getElementById('pathB-mid');
+    const pathAMerge = document.getElementById('pathA-merge');
+    const pathBMerge = document.getElementById('pathB-merge');
+    
+    const nodeALogic = document.getElementById('nodeA-logic');
+    const nodeBLogic = document.getElementById('nodeB-logic');
+    const iconALogic = document.getElementById('iconA-logic');
+    const iconBLogic = document.getElementById('iconB-logic');
+    
+    const nodeADns = document.getElementById('nodeA-dns');
+    const nodeBDns = document.getElementById('nodeB-dns');
+    const iconADns = document.getElementById('iconA-dns');
+    const iconBDns = document.getElementById('iconB-dns');
+    const ipADns = document.getElementById('ipA-dns');
+    const ipBDns = document.getElementById('ipB-dns');
+    
+    const fraudSuccess = document.getElementById('fraudSuccess');
+    const fraudFail = document.getElementById('fraudFail');
+    const trafficIndicator = document.getElementById('trafficIndicator');
+    
+    const logFake = document.getElementById('logBlockFake');
+    const logDirect = document.getElementById('logBlockDirect');
 
-    if (isActive) {
-      el.classList.remove('bg-[#0f1114]', 'border-[#1f2228]');
-      if (colorTheme === 'red') {
-        el.classList.add('bg-red-node');
-        icon.className.baseVal = "w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-500 text-red-node";
-        if (ip) ip.classList.add('text-red-node');
-      } else if (colorTheme === 'green') {
-        el.classList.add('bg-green-node');
-        icon.className.baseVal = "w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-500 text-green-node";
-        if (ip) ip.classList.add('text-green-node');
+    function setPathState(el, active, color) {
+      if (!el) return;
+      el.setAttribute('stroke', active ? color : '#1f2228');
+      el.setAttribute('stroke-dasharray', active ? '4 4' : '0');
+      if (active) {
+        el.classList.add('animate-flow');
+      } else {
+        el.classList.remove('animate-flow');
       }
     }
-  }
 
-  function setPathState(baseId, isActive, hexColor) {
-    const el = document.getElementById(baseId);
-    if (!el) return;
-    
-    el.setAttribute('stroke', isActive ? hexColor : '#1f2228');
-    el.setAttribute('stroke-dasharray', isActive ? '4 4' : '0');
-    
-    if (isActive) {
-      el.classList.add('animate-flow');
-    } else {
-      el.classList.remove('animate-flow');
-    }
-  }
-
-  function updateDOM() {
-    // 1. Paths
-    setPathState('pathA-split', !useDirect, '#ff3e3e');
-    setPathState('pathB-split', useDirect, '#00ff94');
-    
-    setPathState('pathA-mid', !useDirect, '#ff3e3e');
-    setPathState('pathB-mid', useDirect, '#00ff94');
-    
-    setPathState('pathA-merge', !useDirect, '#ff3e3e');
-    setPathState('pathB-merge', useDirect, '#00ff94');
-
-    // 2. Nodes
-    setNodeState('nodeA-logic', !useDirect, 'red');
-    setNodeState('nodeB-logic', useDirect, 'green');
-    setNodeState('nodeA-dns', !useDirect, 'red');
-    setNodeState('nodeB-dns', useDirect, 'green');
-
-    // 3. Toggle switch visuals
-    const tBg = document.getElementById('toggleBg');
-    const tCirc = document.getElementById('toggleCircle');
-    if (useDirect) {
-      tBg.style.borderColor = 'transparent';
-      tCirc.style.transform = 'translateX(30px)';
-      tCirc.style.background = '#00ff94';
-      tCirc.style.boxShadow = '0 0 10px #00ff94';
-    } else {
-      tBg.style.borderColor = '#1f2228';
-      tCirc.style.transform = 'translateX(0)';
-      tCirc.style.background = '#666a73';
-      tCirc.style.boxShadow = 'none';
-    }
-
-    // 4. Indicator
-    const ind = document.getElementById('trafficIndicator');
-    if (useDirect) {
-      ind.className = 'w-2 h-2 rounded-full animate-pulse bg-[#00ff94] shadow-[0_0_8px_#00ff94]';
-    } else {
-      ind.className = 'w-2 h-2 rounded-full animate-pulse bg-[#ff3e3e] shadow-[0_0_8px_#ff3e3e]';
-    }
-
-    // 5. Anti-Fraud Box
-    const sBox = document.getElementById('fraudSuccess');
-    const fBox = document.getElementById('fraudFail');
-    
-    if (useDirect) {
-      fBox.style.display = 'none';
-      sBox.style.display = 'flex';
-      // trigger reflow for animation
-      sBox.classList.remove('fade-in');
-      void sBox.offsetWidth;
-      sBox.classList.add('fade-in');
-    } else {
-      sBox.style.display = 'none';
-      fBox.style.display = 'flex';
-      // trigger reflow for animation
-      fBox.classList.remove('fade-in');
-      void fBox.offsetWidth;
-      fBox.classList.add('fade-in');
-    }
-
-    // 6. Terminal Logs
-    const logF = document.getElementById('logBlockFake');
-    const logD = document.getElementById('logBlockDirect');
-    
-    if (useDirect) {
-      logF.style.display = 'none';
-      logD.style.display = 'block';
+    function setNodeState(node, icon, ip, active, theme) {
+      if (!node) return;
+      // Сброс
+      node.className = node.className.replace(/bg-\w+-node|border-\[\w+\]|shadow-\[.*?\]/g, '');
+      node.classList.add('bg-[#0f1114]', 'border-[#1f2228]');
+      if (icon) icon.classList.add('text-[#666a73]');
+      if (ip) ip.classList.add('text-[#666a73]');
       
-      const children = logD.querySelectorAll('.fade-in');
-      children.forEach(c => { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = null; });
-    } else {
-      logD.style.display = 'none';
-      logF.style.display = 'block';
-      
-      const children = logF.querySelectorAll('.fade-in');
-      children.forEach(c => { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = null; });
+      if (active) {
+        node.classList.remove('bg-[#0f1114]', 'border-[#1f2228]');
+        if (theme === 'red') {
+          node.classList.add('bg-red-node');
+          if (icon) {
+            icon.classList.remove('text-[#666a73]');
+            icon.classList.add('text-red-node');
+          }
+          if (ip) {
+            ip.classList.remove('text-[#666a73]');
+            ip.classList.add('text-red-node');
+          }
+        } else if (theme === 'green') {
+          node.classList.add('bg-green-node');
+          if (icon) {
+            icon.classList.remove('text-[#666a73]');
+            icon.classList.add('text-green-node');
+          }
+          if (ip) {
+            ip.classList.remove('text-[#666a73]');
+            ip.classList.add('text-green-node');
+          }
+        }
+      }
     }
-  }
 
-  function toggleBypass(e) {
-    if(e) e.preventDefault();
-    useDirect = !useDirect;
-    updateDOM();
-    
-    // Provide haptic feedback if running in Telegram
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+    function updateUI(useDirect) {
+      // Пути
+      setPathState(pathASplit, !useDirect, '#ff3e3e');
+      setPathState(pathBSplit, useDirect, '#00ff94');
+      setPathState(pathAMid, !useDirect, '#ff3e3e');
+      setPathState(pathBMid, useDirect, '#00ff94');
+      setPathState(pathAMerge, !useDirect, '#ff3e3e');
+      setPathState(pathBMerge, useDirect, '#00ff94');
+      
+      // Узлы
+      setNodeState(nodeALogic, iconALogic, null, !useDirect, 'red');
+      setNodeState(nodeBLogic, iconBLogic, null, useDirect, 'green');
+      setNodeState(nodeADns, iconADns, ipADns, !useDirect, 'red');
+      setNodeState(nodeBDns, iconBDns, ipBDns, useDirect, 'green');
+      
+      // Индикатор трафика
+      trafficIndicator.className = 'w-2 h-2 rounded-full animate-pulse ' + 
+        (useDirect ? 'bg-[#00ff94] shadow-[0_0_8px_#00ff94]' : 'bg-[#ff3e3e] shadow-[0_0_8px_#ff3e3e]');
+      
+      // Антифрод
+      if (useDirect) {
+        fraudFail.style.display = 'none';
+        fraudSuccess.style.display = 'flex';
+      } else {
+        fraudSuccess.style.display = 'none';
+        fraudFail.style.display = 'flex';
+      }
+      
+      // Логи
+      if (useDirect) {
+        logFake.style.display = 'none';
+        logDirect.style.display = 'block';
+      } else {
+        logDirect.style.display = 'none';
+        logFake.style.display = 'block';
+      }
+    }
+
+    // Обработчик переключения
+    toggleCheckbox.addEventListener('change', function(e) {
+      updateUI(this.checked);
+      
+      // Тактильная отдача в Telegram
+      if (window.Telegram?.WebApp?.HapticFeedback) {
         window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-    }
-  }
+      }
+    });
 
-  // Init
-  updateDOM();
+    // Инициализация (выключен = fake)
+    updateUI(false);
+  })();
 </script>
 </body>
 </html>
